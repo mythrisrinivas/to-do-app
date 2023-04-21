@@ -1,6 +1,6 @@
 pipeline {  
     agent any
-    env {
+    environment {
         ACCESS_KEY = credentials('TO_DO_ACCESS_KEY')
         SECRET_KEY = credentials('TO_DO_SECRET_KEY')
 
