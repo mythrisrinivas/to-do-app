@@ -1,41 +1,43 @@
 pipeline {  
-    agent any  
-    parameters {
-        booleanParam(defaultValue: true, description: '', name: 'Build')
+    agent any
+    env {
+        ACCESS_KEY = credentials('TO_DO_ACCESS_KEY')
+        SECRET_KEY = credentials('TO_DO_SECRET_KEY')
+
     }
     stages {
         stage ('Build') {  
-            when { expression { return params.Build }} 
             steps {
-                sh "mvn site"
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]) {
-                    sh "docker build -t ${user}/helloapp:${currentBuild.number} ."
-                    sh "docker tag ${user}/helloapp:${currentBuild.number} ${user}/helloapp:latest"
-                }
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'target/site/**'
+                    sh "docker build -t ${user}/infra:${currentBuild.number} ."
+                    sh "docker tag ${user}/infra:${currentBuild.number} ${user}/helloapp:latest"
                 }
             }
         }
         stage ('Push to registry') {
-            when { expression { return params.Build }} 
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]) {
                     sh "docker login -u ${user} -p ${pass}"
-                    sh "docker push ${user}/helloapp:${currentBuild.number}"
-                    sh "docker push ${user}/helloapp:latest"
+                    sh "docker push ${user}/infra:${currentBuild.number}"
+                    sh "docker push ${user}/infra:latest"
                 }
             }
         }
-        stage ('Deploy') {  
+        stage ('Docker Deploy') {
             steps {
                 sh "docker stop helloapp || true && docker rm helloapp || true"
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]) {
                     sh "docker run -d -p 8085:8085  --name helloapp ${user}/helloapp:latest"
                 }
             }
+        }
+        stage ('Deploy on EKS') {
+             steps {
+                    sh "cd terraform"
+                    sh "terraform init"
+                    sh "terraform plan"
+                    sh "terraform apply -var aws_secret_key=${ACCESS_KEY} -var aws_secret_key=${SECRET_KEY} --auto-approve"
+             }
         }
     }  
 } 

@@ -1,5 +1,7 @@
 provider "aws" {
   region = "ap-southeast-1"
+  access_key = var.aws_secret_key
+  secret_key = var.aws_access_key
 }
 
 data "aws_eks_cluster_auth" "eks-cluster-auth" {
