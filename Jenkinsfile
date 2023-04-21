@@ -33,10 +33,11 @@ pipeline {
         }
         stage ('Deploy on EKS') {
              steps {
-                    sh "cd terraform"
+                 dir('terraform') {
                     sh "terraform init"
                     sh "terraform plan"
                     sh "terraform apply -var aws_secret_key=${ACCESS_KEY} -var aws_secret_key=${SECRET_KEY} --auto-approve"
+                     }
              }
         }
     }  
