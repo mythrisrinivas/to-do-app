@@ -10,7 +10,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]) {
                     sh "docker build -t ${user}/infra:${currentBuild.number} ."
-                    sh "docker tag ${user}/infra:${currentBuild.number} ${user}/helloapp:latest"
+                    sh "docker tag ${user}/infra:${currentBuild.number} ${user}/infra:latest"
                 }
             }
         }
