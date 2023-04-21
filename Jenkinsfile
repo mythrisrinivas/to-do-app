@@ -1,7 +1,7 @@
-pipeline {  
+pipeline {
     agent any
     stages {
-        stage ('Build') {  
+        stage ('Build') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]) {
                     sh "docker build -t ${user}/infra:${currentBuild.number} ."
@@ -29,11 +29,13 @@ pipeline {
         stage ('Deploy on EKS') {
              steps {
                  dir('terraform') {
+                   withAWS(region: 'ap-southeast-1', credentials: 'aws') {
                     sh "terraform init"
                     sh "terraform plan"
                     sh "terraform apply --auto-approve"
                      }
+                    }
              }
         }
-    }  
-} 
+    }
+}
