@@ -1,10 +1,5 @@
 pipeline {  
     agent any
-    environment {
-        ACCESS_KEY = credentials('TO_DO_ACCESS_KEY')
-        SECRET_KEY = credentials('TO_DO_SECRET_KEY')
-
-    }
     stages {
         stage ('Build') {  
             steps {
@@ -25,9 +20,9 @@ pipeline {
         }
         stage ('Docker Deploy') {
             steps {
-                sh "docker stop helloapp || true && docker rm helloapp || true"
+                sh "docker stop infra || true && docker rm infra || true"
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'pass', usernameVariable: 'user')]) {
-                    sh "docker run -d -p 8085:8085  --name helloapp ${user}/helloapp:latest"
+                    sh "docker run -d -p 8085:8085 --name infra ${user}/infra:latest"
                 }
             }
         }
@@ -36,7 +31,7 @@ pipeline {
                  dir('terraform') {
                     sh "terraform init"
                     sh "terraform plan"
-                    sh "terraform apply -var aws_secret_key=${ACCESS_KEY} -var aws_secret_key=${SECRET_KEY} --auto-approve"
+                    sh "terraform apply --auto-approve"
                      }
              }
         }
